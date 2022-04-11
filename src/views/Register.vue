@@ -16,6 +16,7 @@
     <section class="register-form">
       <div class="register-page">
         <h3>Register</h3>
+        <p v-if="err" class = 'error-mgs'>{{err}}</p>
         <div class="register-container">
           <form @submit.prevent="registerAccount">
             <label for="email">Email</label>
@@ -97,24 +98,34 @@ export default {
     };
   },
 
+computed:{
+  err(){
+    return this.$store.state.errors 
+  }
+},
+
   methods: {
-    registerAccount() {
-      if (
+   async registerAccount() {
+      try{
+        if (
         this.register.email !== "" &&
         this.register.name !== "" &&
         this.register.password !== "" &&
         this.register.password === this.validation.password
       ) {
-        console.log("Initiate", this.register);
-        this.$store.dispatch("signup", this.register).then(() => {
-          alert("Success!")
-          this.$router.push("/login");
-        });
-      } else if (this.register.password !== this.register.validation.password) {
-        alert("Password is not matching!");
+       await  this.$store.dispatch("signup", this.register)
+        await  this.$router.push("/login");
+        
+        // Found issue here in prev version (issue: this.register.validation.password)
+      }else if (this.register.password !== this.validation.password) {
+        throw new Error("Password is not matching!");
       } else {
-        alert("Insufficient information given!");
+        throw new Error("Required info missing!");
       }
+      }catch(error){
+       await await this.$store.dispatch("catchErr", error);
+        }
+       
     },
 
     click() {
@@ -148,6 +159,9 @@ export default {
   margin: 5rem 0 11rem 0;
   h3 {
     font-size: 2rem;
+  }
+  .error-mgs{
+    color: red;
   }
 }
 .login-container {
